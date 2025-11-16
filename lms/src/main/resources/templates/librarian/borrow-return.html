@@ -1,0 +1,106 @@
+<!-- librarian/borrow-return.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrow/Return Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .navbar { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { font-size: 24px; }
+        .navbar-right { display: flex; gap: 20px; align-items: center; }
+        .navbar a { color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; }
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
+        .content-box { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .return-btn { padding: 6px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .return-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-returned { background: #d1ecf1; color: #0c5460; }
+        .status-overdue { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>📚 Library System - Librarian</h1>
+        <div class="navbar-right">
+            <span th:text="${user.username}"></span>
+            <a th:href="@{/librarian/dashboard}">Dashboard</a>
+            <a th:href="@{/librarian/manage-books}">Manage Books</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="content-box">
+            <h2>Borrow/Return Management</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Record ID</th>
+                        <th>Student Name</th>
+                        <th>Book Title</th>
+                        <th>Borrow Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="record : ${records}">
+                        <td th:text="${record.recordId}"></td>
+                        <td th:text="${record.student.username}"></td>
+                        <td th:text="${record.book.title}"></td>
+                        <td th:text="${record.borrowDate}"></td>
+                        <td th:text="${record.dueDate}"></td>
+                        <td th:text="${record.returnDate != null ? record.returnDate : '-'}"></td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${record.status == T(com.library.lms.enums.BorrowStatus).ACTIVE} ? 'status-active' : 
+                                                   ${record.status == T(com.library.lms.enums.BorrowStatus).RETURNED} ? 'status-returned' : 'status-overdue'"
+                                  th:text="${record.status}"></span>
+                        </td>
+                        <td>
+                            <button class="return-btn" 
+                                    th:if="${record.status != T(com.library.lms.enums.BorrowStatus).RETURNED}"
+                                    th:attr="data-record-id=${record.recordId}"
+                                    onclick="returnBook(this)">
+                                Return
+                            </button>
+                            <span th:if="${record.status == T(com.library.lms.enums.BorrowStatus).RETURNED}">-</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function returnBook(btn) {
+            const recordId = btn.getAttribute('data-record-id');
+            if (confirm('Process book return?')) {
+                fetch(`/librarian/return/${recordId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data.startsWith('success:')) {
+                        alert(data.substring(8));
+                        location.reload();
+                    } else {
+                        alert(data.substring(6));
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

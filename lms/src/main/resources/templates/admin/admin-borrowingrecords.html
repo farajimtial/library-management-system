@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borrowing Records - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar h1 { font-size: 24px; }
+        .navbar-right { display: flex; gap: 20px; align-items: center; }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+        
+        .navbar a:hover { background: rgba(255,255,255,0.2); }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .content-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #dc3545;
+            background: white;
+            color: #dc3545;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background: #dc3545;
+            color: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-returned { background: #d1ecf1; color: #0c5460; }
+        .status-overdue { background: #f8d7da; color: #721c24; }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .export-btn {
+            float: right;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .export-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>📖 Borrowing Records</h1>
+        <div class="navbar-right">
+            <span th:text="${user.username}">Admin</span>
+            <a th:href="@{/admin/dashboard}">Dashboard</a>
+            <a th:href="@{/admin/reports}">Reports</a>
+            <a th:href="@{/admin/manage-users}">Users</a>
+            <a th:href="@{/auth/logout}">Logout</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="content-box">
+            <h2>All Borrowing Records</h2>
+            <button class="export-btn" onclick="window.print()">📥 Export to PDF</button>
+            
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by student name or book title..." onkeyup="filterTable()">
+            </div>
+            
+            <div class="filter-bar">
+                <button class="filter-btn active" onclick="filterStatus('all')">All Records</button>
+                <button class="filter-btn" onclick="filterStatus('ACTIVE')">Active</button>
+                <button class="filter-btn" onclick="filterStatus('RETURNED')">Returned</button>
+                <button class="filter-btn" onclick="filterStatus('OVERDUE')">Overdue</button>
+            </div>
+            
+            <table id="recordsTable">
+                <thead>
+                    <tr>
+                        <th>Record ID</th>
+                        <th>Student</th>
+                        <th>Book Title</th>
+                        <th>Author</th>
+                        <th>Borrow Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="record : ${records}">
+                        <td th:text="${record.recordId}">#001</td>
+                        <td th:text="${record.student.username}">Student Name</td>
+                        <td th:text="${record.book.title}">Book Title</td>
+                        <td th:text="${record.book.author}">Author</td>
+                        <td th:text="${record.borrowDate}">2024-01-01</td>
+                        <td th:text="${record.dueDate}">2024-01-15</td>
+                        <td th:text="${record.returnDate != null ? record.returnDate : '-'}">-</td>
+                        <td>
+                            <span class="status-badge" 
+                                  th:classappend="${record.status == T(com.library.lms.enums.BorrowStatus).ACTIVE} ? 'status-active' : 
+                                                   ${record.status == T(com.library.lms.enums.BorrowStatus).RETURNED} ? 'status-returned' : 'status-overdue'"
+                                  th:text="${record.status}">ACTIVE</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p th:if="${records.isEmpty()}" style="text-align: center; color: #999; padding: 40px;">
+                No borrowing records found.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        function filterTable() {
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById('recordsTable');
+            let tr = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < tr.length; i++) {
+                let tdStudent = tr[i].getElementsByTagName('td')[1];
+                let tdBook = tr[i].getElementsByTagName('td')[2];
+                
+                if (tdStudent || tdBook) {
+                    let txtStudent = tdStudent.textContent || tdStudent.innerText;
+                    let txtBook = tdBook.textContent || tdBook.innerText;
+                    
+                    if (txtStudent.toUpperCase().indexOf(filter) > -1 || 
+                        txtBook.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        function filterStatus(status) {
+            // Update button states
+            let buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Filter table
+            let table = document.getElementById('recordsTable');
+            let tr = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < tr.length; i++) {
+                let tdStatus = tr[i].getElementsByTagName('td')[7];
+                
+                if (tdStatus) {
+                    let txtStatus = tdStatus.textContent || tdStatus.innerText;
+                    
+                    if (status === 'all' || txtStatus.indexOf(status) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

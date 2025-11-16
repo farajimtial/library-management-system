@@ -1,0 +1,260 @@
+<!-- setup.html - First-time setup page -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial Setup - Library Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .setup-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .setup-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .setup-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .form-section h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-section h2::before {
+            content: "";
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        
+        .admin-section h2::before { content: "🔐"; }
+        .librarian-section h2::before { content: "👨‍💼"; }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+        
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+        
+        .skip-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .skip-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>🚀 Welcome to Library Management System</h1>
+            <p>Let's set up your system administrator and librarian accounts</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>First-Time Setup</h3>
+            <p>• Create an Admin account to manage the entire system</p>
+            <p>• Create a Librarian account to manage books and borrowing</p>
+            <p>• Students can register themselves from the login page</p>
+        </div>
+        
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        
+        <form th:action="@{/setup/initialize}" method="post">
+            <!-- Admin Section -->
+            <div class="form-section admin-section">
+                <h2>Administrator Account</h2>
+                
+                <div class="form-group">
+                    <label for="adminUsername">Username *</label>
+                    <input type="text" id="adminUsername" name="adminUsername" 
+                           placeholder="admin" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminEmail">Email *</label>
+                    <input type="email" id="adminEmail" name="adminEmail" 
+                           placeholder="admin@library.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminPassword">Password *</label>
+                    <input type="password" id="adminPassword" name="adminPassword" 
+                           placeholder="Minimum 6 characters" required minlength="6">
+                </div>
+            </div>
+            
+            <!-- Librarian Section -->
+            <div class="form-section librarian-section">
+                <h2>Librarian Account</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="libUsername">Username *</label>
+                        <input type="text" id="libUsername" name="libUsername" 
+                               placeholder="librarian1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="librarianId">Librarian ID *</label>
+                        <input type="text" id="librarianId" name="librarianId" 
+                               placeholder="LIB001" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="libEmail">Email *</label>
+                    <input type="email" id="libEmail" name="libEmail" 
+                           placeholder="librarian@library.com" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="libPassword">Password *</label>
+                        <input type="password" id="libPassword" name="libPassword" 
+                               placeholder="Minimum 6 characters" required minlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="employeeId">Employee ID *</label>
+                        <input type="text" id="employeeId" name="employeeId" 
+                               placeholder="EMP001" required>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Complete Setup</button>
+        </form>
+        
+        <div class="skip-link">
+            <a th:href="@{/auth/login}">Skip setup and go to login</a>
+        </div>
+    </div>
+</body>
+</html>
